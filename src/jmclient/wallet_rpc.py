@@ -772,26 +772,26 @@ class JMWalletDaemon(Service):
             assert isinstance(request.content, BytesIO)
             payment_info_json = self.get_POST_body(request, ["mixdepth", "amount_sats", "destination"], ["txfee", "utxos"])
 
-            if not payment_info_json:
-                raise InvalidRequestFormat()
-            if not self.services["wallet"]:
-                raise NoWalletFound()
-            if not self.wallet_name == walletname:
-                raise InvalidRequestFormat()
-            # This is a synchronous operation (no delay is expected),
-            # hence the reference to the CJ_* lock is really just a gate
-            # on performing the action (so simpler to not update the
-            # state, otherwise we would have to revert it correctly in
-            # all error conditions).
-            if not self.coinjoin_state == CJ_NOT_RUNNING:
-                raise ActionNotAllowed()
+            # if not payment_info_json:
+            #     raise InvalidRequestFormat()
+            # if not self.services["wallet"]:
+            #     raise NoWalletFound()
+            # if not self.wallet_name == walletname:
+            #     raise InvalidRequestFormat()
+            # # This is a synchronous operation (no delay is expected),
+            # # hence the reference to the CJ_* lock is really just a gate
+            # # on performing the action (so simpler to not update the
+            # # state, otherwise we would have to revert it correctly in
+            # # all error conditions).
+            # if not self.coinjoin_state == CJ_NOT_RUNNING:
+            #     raise ActionNotAllowed()
 
-            if "txfee" in payment_info_json:
-                if int(payment_info_json["txfee"]) > 0:
-                    jm_single().config.set("POLICY", "tx_fees",
-                                           str(payment_info_json["txfee"]))
-                else:
-                    raise InvalidRequestFormat()
+            # if "txfee" in payment_info_json:
+            #     if int(payment_info_json["txfee"]) > 0:
+            #         jm_single().config.set("POLICY", "tx_fees",
+            #                                str(payment_info_json["txfee"]))
+            #     else:
+            #         raise InvalidRequestFormat()
             try:
                 mixdepth = int(payment_info_json["mixdepth"])
                 destination = payment_info_json["destination"]
