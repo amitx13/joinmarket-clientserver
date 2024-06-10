@@ -156,35 +156,73 @@ def direct_send(wallet_service: WalletService,
             if not selected_utxo_dict:
                 log.error("None of the selected UTXOs are available in the specified mixdepth.")
                 return False
-        else:
-            selected_utxo_dict = utxos
 
-        total_inputs_val = sum([va['value'] for u, va in selected_utxo_dict.items()])
-        if total_inputs_val < total_outputs_val:
-            log.error("Selected UTXOs do not cover the total output value.")
-            return False
-        
-        if custom_change_addr:
-            change_type = wallet_service.get_outtype(custom_change_addr)
-            if change_type is None:
+            total_inputs_val = sum([va['value'] for u, va in selected_utxo_dict.items()])
+            if total_inputs_val < total_outputs_val:
+                log.error("Selected UTXOs do not cover the total output value.")
+                return False
+            
+            if custom_change_addr:
+                change_type = wallet_service.get_outtype(custom_change_addr)
+                if change_type is None:
+                    change_type = txtype
+            else:
                 change_type = txtype
+            
+            if outtypes[0] is None:
+                outtypes[0] = change_type
+            outtypes.append(change_type)
+            
+            fee_est = estimate_tx_fee(len(selected_utxo_dict), len(dest_and_amounts) + 1, txtype=txtype, outtype=outtypes)
+            changeval = total_inputs_val - fee_est - total_outputs_val
+            
+            outs = []
+            for out in dest_and_amounts:
+                outs.append({"value": out[1], "address": out[0]})
+            
+            change_addr = wallet_service.get_internal_addr(mixdepth) if custom_change_addr is None else custom_change_addr
+            outs.append({"value": changeval, "address": change_addr})
+        
         else:
-            change_type = txtype
-        
-        if outtypes[0] is None:
-            outtypes[0] = change_type
-        outtypes.append(change_type)
-        
-        fee_est = estimate_tx_fee(len(selected_utxo_dict), len(dest_and_amounts) + 1, txtype=txtype, outtype=outtypes)
-        changeval = total_inputs_val - fee_est - total_outputs_val
-        
-        outs = []
-        for out in dest_and_amounts:
-            outs.append({"value": out[1], "address": out[0]})
-        
-        change_addr = wallet_service.get_internal_addr(mixdepth) if custom_change_addr is None else custom_change_addr
-        outs.append({"value": changeval, "address": change_addr})
-    
+            if custom_change_addr:
+                change_type = wallet_service.get_outtype(custom_change_addr)
+                if change_type is None:
+                    # we don't recognize this type; best we can do is revert to
+                    # default, even though it may be inaccurate:
+                    change_type = txtype
+            else:
+                change_type = txtype
+            if outtypes[0] is None:
+                # we don't recognize the destination script type,
+                # so set it as the same as the change (which will usually
+                # be the same as the spending wallet, but see above for custom)
+                # Notice that this is handled differently to the sweep case above,
+                # because we must use a list - there is more than one output
+                outtypes[0] = change_type
+            outtypes.append(change_type)
+            # not doing a sweep; we will have change.
+            # 8 inputs to be conservative; note we cannot account for the possibility
+            # of non-standard input types at this point.
+            initial_fee_est = estimate_tx_fee(8, len(dest_and_amounts) + 1,
+                                            txtype=txtype, outtype=outtypes)
+            utxos = wallet_service.select_utxos(mixdepth, amount + initial_fee_est,
+                                                includeaddr=True)
+            selected_utxo_dict = utxos
+            script_types = get_utxo_scripts(wallet_service.wallet, utxos)
+            if len(utxos) < 8:
+                fee_est = estimate_tx_fee(len(utxos), len(dest_and_amounts) + 1,
+                                        txtype=script_types, outtype=outtypes)
+            else:
+                fee_est = initial_fee_est
+            total_inputs_val = sum([va['value'] for u, va in utxos.items()])
+            changeval = total_inputs_val - fee_est - total_outputs_val
+            outs = []
+            for out in dest_and_amounts:
+                outs.append({"value": out[1], "address": out[0]})
+            change_addr = wallet_service.get_internal_addr(mixdepth) \
+                if custom_change_addr is None else custom_change_addr
+            outs.append({"value": changeval, "address": change_addr})
+
     #compute transaction locktime, has special case for spending timelocked coins
     tx_locktime = compute_tx_locktime()
     if mixdepth == FidelityBondMixin.FIDELITY_BOND_MIXDEPTH and isinstance(wallet_service.wallet, FidelityBondMixin):
@@ -267,7 +305,7 @@ def direct_send(wallet_service: WalletService,
             cb = log.error if not error_callback else error_callback
             cb(errormsg)
             return False
-
+            
 def get_tumble_log(logsdir):
     tumble_log = logging.getLogger('tumbler')
     tumble_log.setLevel(logging.DEBUG)
