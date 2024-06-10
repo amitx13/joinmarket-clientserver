@@ -792,8 +792,6 @@ class JMWalletDaemon(Service):
                                            str(payment_info_json["txfee"]))
                 else:
                     raise InvalidRequestFormat()
-
-            return make_jmwalletd_response(request,res=payment_info_json)
             try:
                 mixdepth = int(payment_info_json["mixdepth"])
                 destination = payment_info_json["destination"]
