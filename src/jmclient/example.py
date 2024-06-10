@@ -230,3 +230,66 @@ def direct_send(wallet_service: WalletService,
             cb = log.error if not error_callback else error_callback
             cb(errormsg)
             return False
+
+
+
+
+        @app.route('/wallet/<string:walletname>/taker/direct-send', methods=['POST'])
+        def directsend(self, request, walletname):
+            """ Use the contents of the POST body to do a direct send from
+            the active wallet at the chosen mixdepth.
+            """
+            self.check_cookie(request)
+            assert isinstance(request.content, BytesIO)
+            payment_info_json = self.get_POST_body(request, ["mixdepth", "amount_sats",
+                                                             "destination"],
+                                                            ["txfee"])
+            if not payment_info_json:
+                raise InvalidRequestFormat()
+            if not self.services["wallet"]:
+                raise NoWalletFound()
+            if not self.wallet_name == walletname:
+                raise InvalidRequestFormat()
+            # This is a synchronous operation (no delay is expected),
+            # hence the reference to the CJ_* lock is really just a gate
+            # on performing the action (so simpler to not update the
+            # state, otherwise we would have to revert it correctly in
+            # all error conditions).
+            if not self.coinjoin_state == CJ_NOT_RUNNING:
+                raise ActionNotAllowed()
+
+            if "txfee" in payment_info_json:
+                if int(payment_info_json["txfee"]) > 0:
+                    jm_single().config.set("POLICY", "tx_fees",
+                                           str(payment_info_json["txfee"]))
+                else:
+                    raise InvalidRequestFormat()
+
+            try:
+                tx = direct_send(self.services["wallet"],
+                        int(payment_info_json["mixdepth"]),
+                        [(
+                            payment_info_json["destination"],
+                            int(payment_info_json["amount_sats"])
+                        )],
+                        return_transaction=True, answeryes=True)
+                jm_single().config.set("POLICY", "tx_fees",
+                                       self.default_policy_tx_fees)
+            except AssertionError:
+                jm_single().config.set("POLICY", "tx_fees",
+                                       self.default_policy_tx_fees)
+                raise InvalidRequestFormat()
+            except NotEnoughFundsException as e:
+                jm_single().config.set("POLICY", "tx_fees",
+                                       self.default_policy_tx_fees)
+                raise TransactionFailed(repr(e))
+            except Exception:
+                jm_single().config.set("POLICY", "tx_fees",
+                                       self.default_policy_tx_fees)
+                raise
+            if not tx:
+                # this should not really happen; not a coinjoin
+                # so tx should go through.
+                raise TransactionFailed()
+            return make_jmwalletd_response(request,
+                            txinfo=human_readable_transaction(tx, False))

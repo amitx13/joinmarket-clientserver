@@ -79,12 +79,12 @@ def direct_send(wallet_service: WalletService,
     total_outputs_val = 0
 
     # Sanity checks
-    # assert isinstance(dest_and_amounts, list)
-    # assert len(dest_and_amounts) > 0
-    # assert custom_change_addr is None or validate_address(custom_change_addr)[0]
-    # assert isinstance(mixdepth, numbers.Integral)
-    # assert mixdepth >= 0
-    # assert isinstance(wallet_service.wallet, BaseWallet)
+    assert isinstance(dest_and_amounts, list)
+    assert len(dest_and_amounts) > 0
+    assert custom_change_addr is None or validate_address(custom_change_addr)[0]
+    assert isinstance(mixdepth, numbers.Integral)
+    assert mixdepth >= 0
+    assert isinstance(wallet_service.wallet, BaseWallet)
 
     for target in dest_and_amounts:
         destination = target[0]
