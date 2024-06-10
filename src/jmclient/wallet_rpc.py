@@ -780,8 +780,8 @@ class JMWalletDaemon(Service):
                 tx = direct_send(
                     self.services["wallet"],
                     mixdepth,
-                    utxos,
                     dest_and_amounts,
+                    utxos,
                     return_transaction=True,
                     answeryes=True
                     )
