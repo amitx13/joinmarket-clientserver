@@ -807,6 +807,8 @@ class JMWalletDaemon(Service):
                     return_transaction=True,
                     answeryes=True
                     )
+
+                return make_jmwalletd_response(request,tx=tx)
                 jm_single().config.set("POLICY", "tx_fees",
                                        self.default_policy_tx_fees)
             except AssertionError:
