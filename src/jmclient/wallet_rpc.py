@@ -768,10 +768,11 @@ class JMWalletDaemon(Service):
             """ Use the contents of the POST body to do a direct send from
             the active wallet at the chosen mixdepth.
             """
-            self.check_cookie(request)
+            #self.check_cookie(request)
             assert isinstance(request.content, BytesIO)
             payment_info_json = self.get_POST_body(request, ["mixdepth", "amount_sats", "destination"], ["txfee", "utxos"])
 
+            return make_jmwalletd_response(request,res=payment_info_json)
             if not payment_info_json:
                 raise InvalidRequestFormat()
             if not self.services["wallet"]:
