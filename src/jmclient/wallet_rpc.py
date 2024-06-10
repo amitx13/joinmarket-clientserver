@@ -772,7 +772,6 @@ class JMWalletDaemon(Service):
             assert isinstance(request.content, BytesIO)
             payment_info_json = self.get_POST_body(request, ["mixdepth", "amount_sats", "destination"], ["txfee", "utxos"])
 
-            return make_jmwalletd_response(request,res=payment_info_json)
             if not payment_info_json:
                 raise InvalidRequestFormat()
             if not self.services["wallet"]:
@@ -794,6 +793,7 @@ class JMWalletDaemon(Service):
                 else:
                     raise InvalidRequestFormat()
 
+            return make_jmwalletd_response(request,res=payment_info_json)
             try:
                 mixdepth = int(payment_info_json["mixdepth"])
                 destination = payment_info_json["destination"]
