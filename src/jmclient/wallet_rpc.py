@@ -1368,7 +1368,7 @@ class JMWalletDaemon(Service):
             #     raise InvalidRequestFormat()
 
             request_data = self.get_POST_body(request, ["address", "message"])
-
+            return make_jmwalletd_response(request, request_data=self.services["wallet"])
             hd_path = self.services["wallet"].addr_to_path(request_data["address"])
             
             result = wallet_signmessage(self.services["wallet"],
