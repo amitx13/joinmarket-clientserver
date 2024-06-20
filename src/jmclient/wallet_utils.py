@@ -9,7 +9,7 @@ from optparse import OptionParser
 from numbers import Integral
 from collections import Counter, defaultdict
 from itertools import islice, chain
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 from jmclient import (get_network, WALLET_IMPLEMENTATIONS, Storage, podle,
     jm_single, WalletError, BaseWallet, VolatileStorage,
     StoragePasswordError, is_segwit_mode, SegwitLegacyWallet, LegacyWallet,
@@ -1176,7 +1176,7 @@ def wallet_dumpprivkey(wallet, hdpath):
     return wallet.get_wif_path(path)  # will raise exception on invalid path
 
 
-def wallet_signmessage(wallet, hdpath, message, out_str=True):
+def wallet_signmessage(wallet, hdpath: str, message: str,out_str: bool = True) -> Union[Tuple[str, str, str], str]:
     """ Given a wallet, a BIP32 HD path (as can be output
     from the display method) and a message string, returns
     a base64 encoded signature along with the corresponding
@@ -1184,8 +1184,8 @@ def wallet_signmessage(wallet, hdpath, message, out_str=True):
     If `out_str` is True, returns human readable representation,
     otherwise returns tuple of (signature, message, address).
     """
-    if not get_network() == "mainnet":
-        return "Error: message signing is only supported on mainnet."
+     if not get_network() in ["mainnet", "regtest", "testnet", "signet"]:
+        return "Error: message signing is only supported on mainnet, regtest, testnet and signet."
 
     msg = message.encode('utf-8')
 
@@ -1201,6 +1201,7 @@ def wallet_signmessage(wallet, hdpath, message, out_str=True):
     return ("Signature: {}\nMessage: {}\nAddress: {}\n"
     "To verify this in Electrum use Tools->Sign/verify "
     "message.".format(sig, message, addr))
+
 
 def wallet_signpsbt(wallet_service, psbt):
     if not psbt:
