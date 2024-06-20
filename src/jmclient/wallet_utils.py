@@ -1184,7 +1184,7 @@ def wallet_signmessage(wallet, hdpath: str, message: str,out_str: bool = True) -
     If `out_str` is True, returns human readable representation,
     otherwise returns tuple of (signature, message, address).
     """
-     if not get_network() in ["mainnet", "regtest", "testnet", "signet"]:
+    if not get_network() in ["mainnet", "regtest", "testnet", "signet"]:
         return "Error: message signing is only supported on mainnet, regtest, testnet and signet."
 
     msg = message.encode('utf-8')

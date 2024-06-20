@@ -1361,11 +1361,11 @@ class JMWalletDaemon(Service):
 
         @app.route('/wallet/<string:walletname>/signmessage', methods=['POST'])
         def signmessage(self, request, walletname):
-            self.check_cookie(request)
-            if not self.services["wallet"]:
-                raise NoWalletFound()
-            if not self.wallet_name == walletname:
-                raise InvalidRequestFormat()
+            # self.check_cookie(request)
+            # if not self.services["wallet"]:
+            #     raise NoWalletFound()
+            # if not self.wallet_name == walletname:
+            #     raise InvalidRequestFormat()
 
             request_data = self.get_POST_body(request, ["address", "message"])
 
