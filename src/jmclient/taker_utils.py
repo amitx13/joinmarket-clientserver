@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import numbers
+import ast  
 from typing import Callable, List, Optional, Tuple, Union
 
 from jmbase import get_log, jmprint, bintohex, hextobin, \
@@ -163,6 +164,7 @@ def direct_send(wallet_service: WalletService,
         outs = []
         utxos = {}
         selected_utxos = jm_single().config.get("POLICY","utxos")
+        selected_utxos = ast.literal_eval(selected_utxos)
         if selected_utxos:
             # Filter UTXOs based on selected_utxos
             all_utxos = wallet_service.get_utxos_by_mixdepth().get(mixdepth, {})
