@@ -798,42 +798,41 @@ class JMWalletDaemon(Service):
             else:
                 jm_single().config.set("POLICY", "utxos", None)
 
-            try:
-                mixdepth = int(payment_info_json["mixdepth"])
-                destination = payment_info_json["destination"]
-                amount_sats = int(payment_info_json["amount_sats"])
-                dest_and_amounts = [(destination, amount_sats)]
+            mixdepth = int(payment_info_json["mixdepth"])
+            destination = payment_info_json["destination"]
+            amount_sats = int(payment_info_json["amount_sats"])
+            dest_and_amounts = [(destination, amount_sats)]
 
-                tx = direct_send(
-                    self.services["wallet"],
-                    mixdepth,
-                    dest_and_amounts,
-                    return_transaction=True,
-                    answeryes=True
-                    )
-
-                jm_single().config.set("POLICY", "tx_fees",
-                                       self.default_policy_tx_fees)
-                if "utxos" in payment_info_json:
-                    jm_single().config.set("POLICY", "utxos", None)
-            except AssertionError:
-                jm_single().config.set("POLICY", "tx_fees",
-                                       self.default_policy_tx_fees)
-                raise InvalidRequestFormat()
-            except NotEnoughFundsException as e:
-                jm_single().config.set("POLICY", "tx_fees",
-                                       self.default_policy_tx_fees)
-                raise TransactionFailed(repr(e))
-            except Exception:
-                jm_single().config.set("POLICY", "tx_fees",
-                                       self.default_policy_tx_fees)
-                raise
-            if not tx:
-                # this should not really happen; not a coinjoin
-                # so tx should go through.
-                raise TransactionFailed()
-            return make_jmwalletd_response(request,
-                            txinfo=human_readable_transaction(tx, False))
+            tx = direct_send(
+                self.services["wallet"],
+                mixdepth,
+                dest_and_amounts,
+                return_transaction=True,
+                answeryes=True
+                )
+            return make_jmwalletd_response(request,tx = tx)
+            #     jm_single().config.set("POLICY", "tx_fees",
+            #                            self.default_policy_tx_fees)
+            #     if "utxos" in payment_info_json:
+            #         jm_single().config.set("POLICY", "utxos", None)
+            # except AssertionError:
+            #     jm_single().config.set("POLICY", "tx_fees",
+            #                            self.default_policy_tx_fees)
+            #     raise InvalidRequestFormat()
+            # except NotEnoughFundsException as e:
+            #     jm_single().config.set("POLICY", "tx_fees",
+            #                            self.default_policy_tx_fees)
+            #     raise TransactionFailed(repr(e))
+            # except Exception:
+            #     jm_single().config.set("POLICY", "tx_fees",
+            #                            self.default_policy_tx_fees)
+            #     raise
+            # if not tx:
+            #     # this should not really happen; not a coinjoin
+            #     # so tx should go through.
+            #     raise TransactionFailed()
+            # return make_jmwalletd_response(request,
+            #                 txinfo=human_readable_transaction(tx, False))
 
         @app.route('/wallet/<string:walletname>/maker/start', methods=['POST'])
         def start_maker(self, request, walletname):
