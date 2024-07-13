@@ -814,17 +814,25 @@ class JMWalletDaemon(Service):
 
                 jm_single().config.set("POLICY", "tx_fees",
                                        self.default_policy_tx_fees)
+                jm_single().config.set("POLICY", "utxos", str(None))
+
             except AssertionError:
                 jm_single().config.set("POLICY", "tx_fees",
                                        self.default_policy_tx_fees)
+                jm_single().config.set("POLICY", "utxos", str(None))
                 raise InvalidRequestFormat()
+
             except NotEnoughFundsException as e:
                 jm_single().config.set("POLICY", "tx_fees",
                                        self.default_policy_tx_fees)
+                jm_single().config.set("POLICY", "utxos", str(None))
                 raise TransactionFailed(repr(e))
+                
             except Exception:
                 jm_single().config.set("POLICY", "tx_fees",
                                        self.default_policy_tx_fees)
+                jm_single().config.set("POLICY", "utxos", str(None))
+
                 raise
             if not tx:
                 # this should not really happen; not a coinjoin
