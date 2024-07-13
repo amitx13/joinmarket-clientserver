@@ -37,7 +37,6 @@ def get_utxo_scripts(wallet: BaseWallet, utxos: dict) -> list:
 def direct_send(wallet_service: WalletService,
                 mixdepth: int,
                 dest_and_amounts: List[Tuple[str, int]],
-                selected_utxos: Optional[List[str]] = None,
                 answeryes: bool = False,
                 accept_callback: Optional[Callable[[str, str, int, int, Optional[str]], bool]] = None,
                 info_callback: Optional[Callable[[str], None]] = None,
@@ -47,7 +46,7 @@ def direct_send(wallet_service: WalletService,
                 optin_rbf: bool = True,
                 custom_change_addr: Optional[str] = None,
                 change_label: Optional[str] = None) -> Union[bool, str]:
-    """Send coins directly from one mixdepth to one or more destination addresses using specific UTXOs;
+    """Send coins directly either by mixdepth or selected UTXOs from a certain mixdepth to one or more destination addresses;
     does not need IRC. Sweep as for normal sendpayment (set amount=0).
     If answeryes is True, callback/command line query is not performed.
     If optin_rbf is True, the nSequence values are changed as appropriate.
@@ -163,6 +162,7 @@ def direct_send(wallet_service: WalletService,
         # of non-standard input types at this point.
         outs = []
         utxos = {}
+        selected_utxos = jm_single().config.get("POLICY","utxos")
         if selected_utxos:
             # Filter UTXOs based on selected_utxos
             all_utxos = wallet_service.get_utxos_by_mixdepth().get(mixdepth, {})
