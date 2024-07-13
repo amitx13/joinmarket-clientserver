@@ -164,8 +164,8 @@ def direct_send(wallet_service: WalletService,
         outs = []
         utxos = {}
         selected_utxos = jm_single().config.get("POLICY","utxos")
-        selected_utxos = ast.literal_eval(selected_utxos)
-        if selected_utxos:
+        if selected_utxos is not None:
+            selected_utxos = ast.literal_eval(selected_utxos)
             # Filter UTXOs based on selected_utxos
             all_utxos = wallet_service.get_utxos_by_mixdepth().get(mixdepth, {})
             if not all_utxos:
