@@ -798,13 +798,11 @@ class JMWalletDaemon(Service):
                 destination = payment_info_json["destination"]
                 amount_sats = int(payment_info_json["amount_sats"])
                 dest_and_amounts = [(destination, amount_sats)]
-                utxos = payment_info_json.get("utxos", None)
 
                 tx = direct_send(
                     self.services["wallet"],
                     mixdepth,
                     dest_and_amounts,
-                    utxos,
                     return_transaction=True,
                     answeryes=True
                     )

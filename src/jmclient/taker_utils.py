@@ -37,7 +37,6 @@ def get_utxo_scripts(wallet: BaseWallet, utxos: dict) -> list:
 def direct_send(wallet_service: WalletService,
                 mixdepth: int,
                 dest_and_amounts: List[Tuple[str, int]],
-                selected_utxos: Optional[List[str]] = None,
                 answeryes: bool = False,
                 accept_callback: Optional[Callable[[str, str, int, int, Optional[str]], bool]] = None,
                 info_callback: Optional[Callable[[str], None]] = None,
