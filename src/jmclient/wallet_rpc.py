@@ -775,7 +775,7 @@ class JMWalletDaemon(Service):
                     raise InvalidRequestFormat()
 
             if "utxos" in payment_info_json:
-                jm_single().config.set("POLICY", "utxos", str(payment_info_json["utxos"]))
+                jm_single().config.set("POLICY", "utxos", payment_info_json["utxos"])
             else:
                 jm_single().config.set("POLICY", "utxos", None)
 
